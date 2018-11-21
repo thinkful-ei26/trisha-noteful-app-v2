@@ -11,12 +11,18 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
   const searchTerm = req.query.searchTerm;
+  const folderId = req.query.folderId; 
 
-  knex.select('id', 'title', 'content')
+  knex
+    .select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
     .from('notes')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .modify(function (queryBuilder) {
       if (searchTerm) {
         queryBuilder.where('title', 'like', `%${searchTerm}%`);
+      }
+      if (folderId) {
+        queryBuilder.where('folder_id', folderId);
       }
     })
     .orderBy('notes.id')
@@ -34,6 +40,7 @@ router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
   knex('notes')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .where('id', id)
     .then(results => {
       if (results.length) {
@@ -86,7 +93,7 @@ router.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 router.post('/', (req, res, next) => {
-  const { title, content } = req.body;
+  const { title, content, folderId } = req.body;
 
   const newItem = { title, content };
   /***** Never trust users - validate input *****/
