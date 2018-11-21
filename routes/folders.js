@@ -39,72 +39,35 @@ router.get('/:id', (req, res, next) => {
 
 /* Update Folder The noteful app does not use this endpoint but we'll create it in order to round out our API */
 
-// router.put(':/id', (req, res, next) => {
+router.put('/:id', (req, res, next) => {
   
-//   const id = req.params.id;
-//   const { name } = req.body
-//   const updateName = { name };
+  const id = req.params.id;
+  const { name } = req.body;
 
-//   if (!name) {
-//     const err = new Error('Missing `name` in request body');
-//     err.status = 400;
-//     return next(err);
-//   }
+  if (!name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
 
-//   knex('folders')
-//     .update(updateName)
-//     .where('id', id)
-//     .returning(['id', 'name'])
-//     .then( ([result]) => {
-//       if (result) {
-//         res.json(result);
-//       } else {
-//         next();
-//       }
-//     })
-//     .catch(err => {
-//       next(err);
-//     });
+  const updateName = { name };
+  
+  knex('folders')
+    .update(updateName)
+    .where('id', id)
+    .returning(['id', 'name'])
+    .then( ([result]) => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 
-// });
-
-
-// // Put update an item
-// router.put('/:id', (req, res, next) => {
-//   const id = req.params.id;
-
-//   /***** Never trust users - validate input *****/
-//   const updateObj = {};
-//   const updateableFields = ['name'];
-
-//   updateableFields.forEach(field => {
-//     if (field in req.body) {
-//       updateObj[field] = req.body[field];
-//     }
-//   });
-
-//   /***** Never trust users - validate input *****/
-//   if (!updateObj.name) {
-//     const err = new Error('Missing `title` in request body');
-//     err.status = 400;
-//     return next(err);
-//   }
-
-//   knex('notes')
-//     .where('id', id)
-//     .update(updateObj)
-//     .returning(['id', 'name'])
-//     .then(results => {
-//       if (results) {
-//         res.json(results);
-//       } else {
-//         next();
-//       }
-//     })
-//     .catch(err => {
-//       next(err);
-//     });
-// });
+});
 
 
 /* Create a Folder accepts an object with a name and inserts it in the DB. Returns the new item along the new id. */
