@@ -37,11 +37,11 @@ router.get('/', (req, res, next) => {
 
 // Get a single item
 router.get('/:id', (req, res, next) => {
-  const id = req.params.id;
+  const notesId = req.params.id;
 
   knex('notes')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
-    .where('id', id)
+    .where('notes.id', notesId)
     .then(results => {
       if (results.length) {
         res.json(results[0]);
@@ -56,7 +56,7 @@ router.get('/:id', (req, res, next) => {
 
 // Put update an item
 router.put('/:id', (req, res, next) => {
-  const noteId = req.params.id;
+  const notesId = req.params.id;
   const { title, content, folderId } = req.body; //updateable fields
 
   // /***** Never trust users - validate input *****/
@@ -83,7 +83,7 @@ router.put('/:id', (req, res, next) => {
   };
 
   knex('notes')
-    .where('id', noteId)
+    .where('id', notesId)
     .update(updateNotes)
     .returning(['id'])
     .then(() => {
@@ -91,7 +91,7 @@ router.put('/:id', (req, res, next) => {
         .select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
-        .where('notes.id', noteId);
+        .where('notes.id', notesId);
     })
     .then( ([result]) => {
       if (result) {
@@ -133,19 +133,20 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  let noteId;
+  let notesId;
 
   knex('notes')
     .insert(newItem)
     .into('notes')
     .returning('id')
     .then(([id]) => {
-      noteId = id;
+      notesId = id;
       // Using the new id, select the new note and the folder
-      return knex.select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
+      return knex
+        .select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
-        .where('notes.id', noteId);
+        .where('notes.id', notesId);
     })
     .then(([result]) => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
@@ -155,10 +156,10 @@ router.post('/', (req, res, next) => {
 
 // Delete an item
 router.delete('/:id', (req, res, next) => {
-  const id = req.params.id;
+  const notesId = req.params.id;
 
   knex('notes')
-    .where('id', id)
+    .where('id', notesId)
     .del()
     .then(() => {
       res.sendStatus(204);

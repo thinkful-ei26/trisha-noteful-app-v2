@@ -14,6 +14,12 @@ CREATE TABLE folders (
 ALTER SEQUENCE folders_id_seq RESTART WITH 100; 
 -- you can put alter sequence after create tables, works too
 
+INSERT INTO folders (name) VALUES
+  ('Archive'),
+  ('Drafts'),
+  ('Personal'),
+  ('Work');
+
 CREATE TABLE notes (
   id serial PRIMARY KEY,
   title text NOT NULL,
@@ -23,12 +29,6 @@ CREATE TABLE notes (
 );
 
 ALTER SEQUENCE notes_id_seq RESTART WITH 1000;
-
-INSERT INTO folders (name) VALUES
-  ('Archive'),
-  ('Drafts'),
-  ('Personal'),
-  ('Work');
 
 INSERT INTO notes 
   (title, content, folder_id) 
