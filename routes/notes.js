@@ -11,7 +11,19 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
   const searchTerm = req.query.searchTerm;
-  const folderId = req.query.folderId; 
+  const folderId = req.query.folderId; //is this supposed to be req.query.id? No. On the req.body it's folderId:
+
+  /* This is req.query which is the raw data from the database: it's an array of objects
+    [
+      {
+        "id": 1001,
+        "title": "What the government doesn't want you to know about cats",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "folderId": 101,
+        "folderName": "Drafts"
+      }...
+    ] 
+  */
 
   knex
     .select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
@@ -70,12 +82,13 @@ router.put('/:id', (req, res, next) => {
   // });
 
   /***** Never trust users - validate input *****/
-  if (!title) {
+  if (!title) { //you can use title because of object destructuring
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
 
+  //Mentor Question: How would I write the below as object destructuring? -- REFACTOR
   const updateNotes = {
     title: title,
     content: content,
@@ -107,6 +120,7 @@ router.put('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
   const { title, content, folderId } = req.body;
 
+  // Mentor Q: how to write this as object destructuring?
   const newItem = {
     title: title,
     content: content,
@@ -139,7 +153,7 @@ router.post('/', (req, res, next) => {
     .insert(newItem)
     .into('notes')
     .returning('id')
-    .then(([id]) => {
+    .then(([id]) => { //array destructuring
       notesId = id;
       // Using the new id, select the new note and the folder
       return knex
