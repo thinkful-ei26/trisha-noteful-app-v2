@@ -102,7 +102,7 @@ router.put('/:id', (req, res, next) => {
   const updateNotes = {
     title: title,
     content: content,
-    folder_id: folderId  // Add `folderId`
+    folder_id: (folderId) ? folderId : null  // sets the folderId to null if not specified
   };
 
   knex('notes')
@@ -110,6 +110,7 @@ router.put('/:id', (req, res, next) => {
     .update(updateNotes)
     .returning(['id'])
     .then(() => {
+      // Using the noteId, select the note and the folder info
       return knex
         .select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
         .from('notes')
@@ -157,20 +158,20 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  let notesId;
+  // let notesId;
 
   knex('notes')
     .insert(newItem)
     .into('notes')
     .returning('id')
     .then(([id]) => { //array destructuring
-      notesId = id;
+      // notesId = id;
       // Using the new id, select the new note and the folder
       return knex
         .select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
-        .where('notes.id', notesId);
+        .where('notes.id', id);
     })
     .then(([result]) => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
