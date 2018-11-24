@@ -13,6 +13,7 @@ router.get('/', (req, res, next) => {
     .from('folders')
     .then(results => {
       res.json(results);
+      console.log('THIS is res.json(results) in get all folders folders.js',res.json(results));
     })
     .catch(err => next(err));
 });
@@ -26,8 +27,11 @@ router.get('/:id', (req, res, next) => {
     .from('folders')
     .where('id', id)
     .then( ([result]) => {
+      console.log('THIS IS result in getfolderid folders.js line 30', result);
+      console.log('THIS IS [result]', [result]);
       if (result) {
         res.json(result);
+        console.log('THIS IS res.json(result)', res.json(result));
       } else {
         next();
       }
@@ -44,6 +48,9 @@ router.put('/:id', (req, res, next) => {
   const id = req.params.id;
   const { name } = req.body;
 
+  console.log('THIS IS req.body in PUT folders.js line 51', req.body);
+  console.log('req.params.id in PUT line 48', id);
+
   if (!name) {
     const err = new Error('Missing `name` in request body');
     err.status = 400;
@@ -52,6 +59,8 @@ router.put('/:id', (req, res, next) => {
 
   const updateName = { name };
   
+  console.log('THIS IS updateName = { name }', updateName);
+
   knex('folders')
     .update(updateName)
     .where('id', id)
@@ -59,6 +68,10 @@ router.put('/:id', (req, res, next) => {
     .then( ([result]) => {
       if (result) {
         res.json(result);
+
+        console.log('THIS IS res.json(result) in PUT', res.json(result));
+        console.log('result', result);
+        console.log('[result]', [result]);
       } else {
         next();
       }
