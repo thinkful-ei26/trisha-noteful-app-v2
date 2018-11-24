@@ -25,9 +25,8 @@ router.get('/', (req, res, next) => {
     ] 
   */
 
-  knex
-    .select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
-    .from('notes')
+  knex('notes')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .modify(function (queryBuilder) {
       if (searchTerm) {
@@ -47,16 +46,27 @@ router.get('/', (req, res, next) => {
 });
 
 
-// Get a single item
+// Get a single note
 router.get('/:id', (req, res, next) => {
   const notesId = req.params.id;
 
   knex('notes')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .where('notes.id', notesId)
-    .then(results => {
-      if (results.length) {
-        res.json(results[0]);
+    .then( ([result]) => {
+      if (result) {
+        res.json(result);
+        
+        //console.log('THIS IS RESULT in GET single notes notes.js line 60:', result);
+
+        /*
+          THIS IS RESULT in GET single notes notes.js line 60: { id: 1001,
+          title: "What the government doesn't want you to know about cats",
+          content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+          folder_id: 101,
+          folderName: 'Drafts' }
+        */
       } else {
         next();
       }
@@ -141,7 +151,7 @@ router.post('/', (req, res, next) => {
   */
 
   /***** Never trust users - validate input *****/
-  if (!newItem.title) {
+  if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);

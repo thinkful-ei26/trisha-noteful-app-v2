@@ -3,7 +3,7 @@
 -- psql -U dev -d noteful-app -f /Users/trisha/projects/trisha-noteful-app-v2/db/noteful-app.sql 
 -- psql -U dev -d noteful-app
 
-DROP TABLE IF EXISTS notes
+DROP TABLE IF EXISTS notes;
 DROP TABLE IF EXISTS folders;
 
 CREATE TABLE folders (
@@ -47,6 +47,41 @@ VALUES
     'The most boring article about cats you''ll ever read',
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     102
+  ),
+  (
+    '7 things lady gaga has in common with cats',
+    'Posuere sollicitudin aliquam ultrices sagittis orci a.'
+  , 103
+  ),
+  (
+    'The most incredible article about cats you''ll ever read',
+    'Lorem ipsum dolor sit amet, boring consectetur adipiscing elit'
+  , 100
+  ),
+  (
+    '10 ways cats can help you live to 100',
+    'Posuere sollicitudin aliquam ultrices sagittis orci a'
+  , NULL
+  ),
+  (
+    '9 reasons you can blame the recession on cats',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
+  , 101
+  ),
+  (
+    '10 ways marketers are making you addicted to cats',
+    'Posuere sollicitudin aliquam ultrices sagittis orci a.'
+  , 101
+  ),
+  (
+    '11 ways investing in cats can make you a millionaire',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
+    , NULL
+  ),
+  (
+    'Why you should forget everything you learned about cats',
+    'Posuere sollicitudin aliquam ultrices sagittis orci a.'
+  , NULL
   );
 
 -- -- get all from notes
