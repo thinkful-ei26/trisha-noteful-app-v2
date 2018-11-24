@@ -124,7 +124,7 @@ router.post('/', (req, res, next) => {
   const newItem = {
     title: title,
     content: content,
-    folder_id: folderId  // Add `folderId`
+    folder_id: (folderId) ? folderId : null  // sets new note with default folder value null, otherwise you get 500 error: invalid input syntax for integer: ""
   };
 
   /* 
