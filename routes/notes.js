@@ -6,7 +6,6 @@ const knex = require('../knex');
 // Create an router instance (aka "mini-app")
 const router = express.Router();
 
-
 // Get All (and search by query)
 
 router.get('/', (req, res, next) => {
