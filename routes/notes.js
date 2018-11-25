@@ -2,6 +2,7 @@
 
 const express = require('express');
 const knex = require('../knex');
+const hydrateNotes = require('../utils/hydrateNotes');
 
 // Create an router instance (aka "mini-app")
 const router = express.Router();
@@ -10,18 +11,29 @@ const router = express.Router();
 
 router.get('/', (req, res, next) => {
   const searchTerm = req.query.searchTerm;
-  const folderId = req.query.folderId; //is this supposed to be req.query.id? No. On the req.body it's folderId:
+  const folderId = req.query.folderId; 
   const tagId = req.query.tagId;
   /* This is req.query which is the raw data from the database: it's an array of objects
-    [
-      {
-        "id": 1001,
-        "title": "What the government doesn't want you to know about cats",
+   [
+    {
+        "id": 1002,
+        "title": "The most boring article about cats you'll ever read",
         "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "folderId": 101,
-        "folderName": "Drafts"
-      }...
-    ] 
+        "folder_id": 102,
+        "folderName": "Personal",
+        "tagId": 1,
+        "tagName": "smile"
+    },
+    {
+        "id": 1002,
+        "title": "The most boring article about cats you'll ever read",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "folder_id": 102,
+        "folderName": "Personal",
+        "tagId": 2,
+        "tagName": "happy"
+    }
+  ]
   */
 
   knex('notes')
@@ -42,7 +54,8 @@ router.get('/', (req, res, next) => {
     })
     .orderBy('notes.id')
     .then(results => {
-      res.json(results);
+      const hydrated = hydrateNotes(results);
+      res.json(hydrated);
     })
     .catch(err => {
       next(err);
@@ -62,29 +75,50 @@ router.get('/:id', (req, res, next) => {
     .where('notes.id', notesId)
     .then( results => {
       if (results) {
-        res.json(results);
+        const hydrated = hydrateNotes(results);
+        res.json(hydrated[0]); //return the only obj on the array
         
         /*
         [
-    {
-        "id": 1002,
-        "title": "The most boring article about cats you'll ever read",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "folder_id": 102,
-        "folderName": "Personal",
-        "tagId": 1,
-        "tagName": "smile"
-    },
-    {
-        "id": 1002,
-        "title": "The most boring article about cats you'll ever read",
-        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        "folder_id": 102,
-        "folderName": "Personal",
-        "tagId": 2,
-        "tagName": "happy"
+      {
+          "id": 1002,
+          "title": "The most boring article about cats you'll ever read",
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "folder_id": 102,
+          "folderName": "Personal",
+          "tagId": 1,
+          "tagName": "smile"
+      },
+      {
+          "id": 1002,
+          "title": "The most boring article about cats you'll ever read",
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "folder_id": 102,
+          "folderName": "Personal",
+          "tagId": 2,
+          "tagName": "happy"
+      }
+    ]
+
+    AFTER hydration:
+
+    results = {
+    "id": 1002,
+    "title": "The most boring article about cats you'll ever read",
+    "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "folder_id": 102,
+    "folderName": "Personal",
+    "tags": [
+        {
+            "id": 1,
+            "name": "smile"
+        },
+        {
+            "id": 2,
+            "name": "happy"
+        }
+      ]
     }
-]
         */
       } else {
         next();
