@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/', (req, res, next) => {
   const searchTerm = req.query.searchTerm;
   const folderId = req.query.folderId; //is this supposed to be req.query.id? No. On the req.body it's folderId:
-
+  const tagId = req.query.tagId;
   /* This is req.query which is the raw data from the database: it's an array of objects
     [
       {
@@ -25,14 +25,19 @@ router.get('/', (req, res, next) => {
   */
 
   knex('notes')
-    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName', 'tags.id as tagId', 'tags.name as tagName')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+    .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
     .modify(function (queryBuilder) {
       if (searchTerm) {
         queryBuilder.where('title', 'like', `%${searchTerm}%`);
       }
       if (folderId) {
         queryBuilder.where('folder_id', folderId);
+      }
+      if (tagId) {
+        queryBuilder.where('tag_id', folderId);
       }
     })
     .orderBy('notes.id')
@@ -50,21 +55,36 @@ router.get('/:id', (req, res, next) => {
   const notesId = req.params.id;
 
   knex('notes')
-    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName')
+    .select('notes.id', 'title', 'content', 'folder_id', 'folders.name as folderName', 'tags.id as tagId', 'tags.name as tagName')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
+    .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+    .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
     .where('notes.id', notesId)
-    .then( ([result]) => {
-      if (result) {
-        res.json(result);
+    .then( results => {
+      if (results) {
+        res.json(results);
         
-        //console.log('THIS IS RESULT in GET single notes notes.js line 60:', result);
-
         /*
-          THIS IS RESULT in GET single notes notes.js line 60: { id: 1001,
-          title: "What the government doesn't want you to know about cats",
-          content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-          folder_id: 101,
-          folderName: 'Drafts' }
+        [
+    {
+        "id": 1002,
+        "title": "The most boring article about cats you'll ever read",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "folder_id": 102,
+        "folderName": "Personal",
+        "tagId": 1,
+        "tagName": "smile"
+    },
+    {
+        "id": 1002,
+        "title": "The most boring article about cats you'll ever read",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "folder_id": 102,
+        "folderName": "Personal",
+        "tagId": 2,
+        "tagName": "happy"
+    }
+]
         */
       } else {
         next();
