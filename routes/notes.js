@@ -132,20 +132,10 @@ router.get('/:id', (req, res, next) => {
 // Put update an item
 router.put('/:id', (req, res, next) => {
   const notesId = req.params.id;
-  const { title, content, folderId } = req.body; //updateable fields
-
-  // /***** Never trust users - validate input *****/
-  // const updateObj = {};
-  // const updateableFields = ['title', 'content'];
-
-  // updateableFields.forEach(field => {
-  //   if (field in req.body) {
-  //     updateObj[field] = req.body[field];
-  //   }
-  // });
+  const { title, content, folderId, tags = [] } = req.body; //updateable fields
 
   /***** Never trust users - validate input *****/
-  if (!title) { //you can use title because of object destructuring
+  if (!title) { 
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
@@ -182,9 +172,8 @@ router.put('/:id', (req, res, next) => {
 
 // Post (insert) an item
 router.post('/', (req, res, next) => {
-  const { title, content, folderId } = req.body;
+  const { title, content, folderId, tags = [] } = req.body;
 
-  // Mentor Q: how to write this as object destructuring?
   const newItem = {
     title: title,
     content: content,
@@ -211,26 +200,40 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
 
-  // let notesId;
+  let noteId;
 
   knex('notes')
     .insert(newItem)
     .into('notes')
     .returning('id')
     .then(([id]) => { //array destructuring
-      // notesId = id;
       // Using the new id, select the new note and the folder
-      return knex
-        .select('notes.id', 'title', 'content', 'folder_id as folderId', 'folders.name as folderName')
+      noteId = id;
+      const tagsInsert = tags.map( tagId => ({
+        note_id: noteId, 
+        tag_id: tagId
+      }));
+      return knex.insert(tagsInsert).into('notes_tags');
+    })
+    .then(() => {
+      return knex.select('notes.id', 'title', 'content',
+        'folder_id as folderId', 'folders.name as folderName',
+        'tags.id as tagId', 'tags.name as tagName')
         .from('notes')
         .leftJoin('folders', 'notes.folder_id', 'folders.id')
-        .where('notes.id', id);
+        .leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
+        .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
+        .where('notes.id', noteId);
     })
-    .then(([result]) => {
-      res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
+    .then( results => {
+      if (results) {
+        const hydrated = hydrateNotes(results)[0];
+        res.location(`${req.originalUrl}/${hydrated.id}`).status(201).json(hydrated);
+      }
     })
     .catch(err => next(err));
 });
+
 
 // Delete an item
 router.delete('/:id', (req, res, next) => {
